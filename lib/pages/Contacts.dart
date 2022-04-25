@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:bytebank/widgets/GenericTextField.dart';
+import 'package:bytebank/data/json.dart';
+import 'package:bytebank/database/app_database.dart';
 import 'package:bytebank/models/Contato.dart';
 import 'package:bytebank/theme/colors.dart';
-import 'package:bytebank/data/json.dart';
+import 'package:bytebank/widgets/GenericTextField.dart';
 import 'package:bytebank/widgets/avatar_image.dart';
+import 'package:flutter/material.dart';
 
 /* FEATURE DE TRANSFERENCIAS | EXTRATOS */
 
@@ -31,43 +32,47 @@ class Contact extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                appBgColorPrimary,
-                upColor
-              ],
+              colors: [appBgColorPrimary, upColor],
             ),
           ),
           child: Column(
             children: [
-              Editor(controlador: _controladorNome,
+              Editor(
+                controlador: _controladorNome,
                 label: 'Nome',
                 hint: 'Homer J. Simpson',
                 icone: Icons.people,
                 type: TextInputType.text,
               ),
-              Editor(controlador: _controladorNumero,
-                label: 'Número',
-                hint: '9 9999-9999',
+              Editor(
+                controlador: _controladorNumero,
+                label: 'Nº Conta',
+                hint: '0000',
                 type: TextInputType.number,
               ),
               ElevatedButton(
                   onPressed: () => _criaContato(context),
                   child: Text("Confirmar")),
-              SizedBox(height: 500,),
+              SizedBox(
+                height: 500,
+              ),
             ],
-
           ),
         ),
       ),
     );
   }
 
+  //cria um contato e insere os seus dados no banco
   void _criaContato(BuildContext context) {
     final String? nome = _controladorNome.text;
-    final String numero = _controladorNumero.text;
+    final int? numero = int.tryParse(_controladorNumero.text);
     if (nome != null && numero != null) {
-      final contatoCriado = Contato(nome, numero);
-      debugPrint('$contatoCriado');
+      final contatoCriado = Contato(0, nome, numero);
+      save(contatoCriado).then((id) {
+        print("[INFO] Insert Done!");
+        //findAllContacts().then((contacts) => debugPrint(contacts.toString()));
+      });
       Navigator.pop(context, contatoCriado);
     }
   }
@@ -90,35 +95,38 @@ class ListaContatosState extends State<Lista_Contatos> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              appBgColorPrimary,
-              upColor
-            ],
+            colors: [appBgColorPrimary, upColor],
           ),
         ),
-        child: ListView.builder(
-          itemCount: widget._contatos.length,
-          itemBuilder:(context, indice) {
-            final contato = widget._contatos[indice];
-            return Item_Contato(contato);
+        child: FutureBuilder(
+          future: findAllContacts(),
+          builder: (context, snapshot) {
+            final List<Contato> _contatos = snapshot.data as List<Contato>;
+            return ListView.builder(
+              itemCount: _contatos.length,
+              itemBuilder: (context, indice) {
+                final contato = _contatos[indice];
+                return Item_Contato(contato);
+              },
+            );
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final Future future = Navigator.push(
-              context, MaterialPageRoute(builder: (context) {
+          final Future future =
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
             return Contact();
           }));
           future.then((contRecebido) {
             if (contRecebido != null) {
-              setState(() =>widget._contatos.add(contRecebido));
+              setState(() => widget._contatos.add(contRecebido));
             }
           });
         },
         tooltip: 'Novo Contato',
         child: const Icon(Icons.add),
-      ),// This trailing comma makes auto-formatting nicer for build methods.
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
@@ -131,39 +139,35 @@ class Item_Contato extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-        children:[
-          SizedBox(height: 10),
-          Container(
-          decoration: BoxDecoration(
-            color: shadowColor.withOpacity(0.4),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 1,
-                offset: Offset(1, 1), // changes position of shadow
-              ),
-            ],
-          ),
-          child: ListTile(
-            leading: AvatarImage(
-              balanceCards[0]['image'],
-              isSVG: false,
-              width: 30, height:30,
-              radius: 50,
+    return Column(children: [
+      SizedBox(height: 10),
+      Container(
+        decoration: BoxDecoration(
+          color: shadowColor.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: shadowColor.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 1,
+              offset: Offset(1, 1), // changes position of shadow
             ),
-            title: Text(_contato.nome,
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .headline6),
-            subtitle: Text(_contato.numero
-                .toString()), // mas se tiver variável dentro nem faz sentido chamar ele de const
+          ],
+        ),
+        child: ListTile(
+          leading: AvatarImage(
+            balanceCards[0]['image'],
+            isSVG: false,
+            width: 30,
+            height: 30,
+            radius: 50,
           ),
-        )]);
+          title:
+              Text(_contato.nome, style: Theme.of(context).textTheme.headline6),
+          subtitle: Text(_contato.numero
+              .toString()), // mas se tiver variável dentro nem faz sentido chamar ele de const
+        ),
+      )
+    ]);
   }
 }
-
-

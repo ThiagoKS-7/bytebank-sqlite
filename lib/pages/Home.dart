@@ -6,7 +6,7 @@ import 'package:bytebank/widgets/coin_item.dart';
 import 'package:bytebank/theme/colors.dart';
 import 'package:bytebank/pages/Init.dart';
 import 'package:bytebank/pages/Extract.dart';
-import 'package:bytebank/pages/Contatcs.dart';
+import 'package:bytebank/pages/Contacts.dart';
 
 
 // classe home

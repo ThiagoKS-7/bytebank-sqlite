@@ -1,9 +1,13 @@
 
+import 'package:bytebank/database/app_database.dart';
 import 'package:flutter/material.dart';
 import 'package:bytebank/pages/Home.dart';
 
 void main() {
   runApp(const BytebankApp());
+  // retorna o resultado de uma inserção
+    //findAllContacts().then((contacts) => debugPrint(contacts.toString()));
+    //print("[INFO] Done!");
 }
 
 class BytebankApp extends StatelessWidget {

@@ -1,6 +1,8 @@
-# bytebank
+# Bytebank
 
 A new Flutter project.
+
+- OBS: Main layout based on https://github.com/sangvaleap/app-flutter-crypto-wallet
 
 ## Getting Started
 

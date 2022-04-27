@@ -120,7 +120,7 @@ class _HomeState extends State<Home> {
             ),
             ListTile(
               leading: Icon(Icons.list),
-              title: Text('Extract List'),
+              title: Text('Extrato'),
               onTap: ()  {
                 // Update the state of the app
                 _onItemTapped(2);
@@ -130,7 +130,7 @@ class _HomeState extends State<Home> {
             ),
             ListTile(
               leading: Icon(Icons.people),
-              title: Text('Contacts'),
+              title: Text('Contatos'),
               onTap: ()  {
                 // Update the state of the app
                 _onItemTapped(3);

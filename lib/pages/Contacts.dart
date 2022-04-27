@@ -1,5 +1,5 @@
 import 'package:bytebank/data/json.dart';
-import 'package:bytebank/database/app_database.dart';
+import 'package:bytebank/database/dao/contact_dao.dart';
 import 'package:bytebank/models/Contato.dart';
 import 'package:bytebank/theme/colors.dart';
 import 'package:bytebank/widgets/GenericTextField.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 class Contact extends StatelessWidget {
   final TextEditingController _controladorNome = TextEditingController();
   final TextEditingController _controladorNumero = TextEditingController();
+  final ContactDao _dao = ContactDao();
 
   @override
   Widget build(BuildContext context) {
@@ -69,11 +70,10 @@ class Contact extends StatelessWidget {
     final int? numero = int.tryParse(_controladorNumero.text);
     if (nome != null && numero != null) {
       final contatoCriado = Contato(0, nome, numero);
-      save(contatoCriado).then((id) {
+      _dao.save(contatoCriado).then((id) {
         print("[INFO] Insert Done!");
-        //findAllContacts().then((contacts) => debugPrint(contacts.toString()));
+        Navigator.pop(context, contatoCriado);
       });
-      Navigator.pop(context, contatoCriado);
     }
   }
 }
@@ -89,6 +89,7 @@ class Lista_Contatos extends StatefulWidget {
 }
 
 class ListaContatosState extends State<Lista_Contatos> {
+  final ContactDao _dao = ContactDao();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,17 +99,41 @@ class ListaContatosState extends State<Lista_Contatos> {
             colors: [appBgColorPrimary, upColor],
           ),
         ),
-        child: FutureBuilder(
-          future: findAllContacts(),
+        child: FutureBuilder<List<Contato>>(
+          // O que vai dentro das <> é o generics
+          initialData: List.empty(growable: true),
+          future:  _dao.findAllContacts(),
           builder: (context, snapshot) {
             final List<Contato> _contatos = snapshot.data as List<Contato>;
-            return ListView.builder(
-              itemCount: _contatos.length,
-              itemBuilder: (context, indice) {
-                final contato = _contatos[indice];
-                return Item_Contato(contato);
-              },
-            );
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+                break;
+              case ConnectionState.waiting:
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 10),
+                        Text("Carregando..."),
+                      ],
+                    ),
+                  );
+              case ConnectionState.active:
+                break;
+              case ConnectionState.done:
+                return ListView.builder(
+                  itemCount: _contatos.length,
+                  itemBuilder: (context, indice) {
+                    final contato = _contatos[indice];
+                    return Item_Contato(contato);
+                  },
+                );
+            }
+            return Text("Unknow error");
+
+
           },
         ),
       ),
